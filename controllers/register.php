@@ -1,132 +1,135 @@
 <?php
-    require('../../../tunnukset.php');
-    include('config/db.php');
+    //echo $_SERVER['SCRIPT_NAME']."<br>";
     include('debuggeri.php');
+    $patternPath = "/(\/[^\/]*)/";
+    $patterns['password'] = "/^.{16,}$/";
+    $patterns['firstname'] = "/^[\p{Latin}'-]*$/";
+    $patterns['lastname'] = $patterns['firstname']; 
+    $patterns['mobilenumber'] = "/^[0-9]{7,15}+$/";
+
+    $path = preg_replace($patternPath,"../",$_SERVER['SCRIPT_NAME']);
+    //foreach ($_SERVER AS $k => $v) echo "$k:$v<br>";
+    //echo "http://".$_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'];
+    
+    if (!file_exists($path.'tunnukset.php')) {
+        debuggeri(basename(__FILE__).",tunnuksia ei löydy, polku:$path");
+        exit;
+        }
+    else require($path.'tunnukset.php');
+    include('config/db.php');
     include('posti.php');  
     global $success_msg, $email_exist, $f_NameErr, $l_NameErr, $_emailErr, $_mobileErr, $_passwordErr;
     global $fNameEmptyErr, $lNameEmptyErr, $emailEmptyErr, $mobileEmptyErr, $passwordEmptyErr, $email_verify_err, $email_verify_success;
-    $passwordRegex = "/^.{16,}$/";
+    $kentat = array('firstname','lastname','email','mobilenumber','password');
+    $errors = [];
+    $emailExists = false;
 
-    // Set empty form vars for validation mapping
-    $_firstname = $_lastname = $_email = $_mobilenumber = $_password = "";
+    function validate($patterns,$kentat){
+    /* Lisätään arvoihin validoidut kentat */    
+    $validated = true;    
+    $arvot = [];
+    foreach ($kentat AS $kentta){
+      $$kentta = $_POST[$kentta];  
+      if (empty($$kentta)) $validated = false;     
+      else {
+        if ($kentta == 'email'){ 
+          if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $validated = false;
+          else $arvot['email'] = $email;  
+          }  
+        else { 
+          //debuggeri("$kentta:{$$kentta},".$patterns[$kentta]);
+          if (!preg_match($patterns[$kentta],$$kentta)) $validated = false;
+          else $arvot[$kentta] = $$kentta;  
+          }
+        }    
+      }
+    return array($validated,$arvot);
+    }
 
-    if(isset($_POST["submit"])) {
-        $firstname     = $_POST["firstname"];
-        $lastname      = $_POST["lastname"];
-        $email         = $_POST["email"];
-        $mobilenumber  = $_POST["mobilenumber"];
-        $password      = $_POST["password"];
-
-        // check if email already exist
-        $_email = mysqli_real_escape_string($connection, $email);
-        $query = "SELECT 1 FROM users WHERE email = '$_email'"; 
+    if (isset($_POST["submit"])) {
+      list($validated,$arvot) = validate($patterns,$kentat);
+      if ($validated){
+        foreach ($arvot AS $kentta => $arvo) {
+          $$kentta = mysqli_real_escape_string($connection,$arvo);
+          }  
+        $query = "SELECT 1 FROM users WHERE email = '$email'"; 
+        debuggeri("query:$query");
         $result = mysqli_query($connection, $query);
-        $userExists = mysqli_num_rows($result);
-
-        // Verify if form values are not empty
-        if(!empty($firstname) && !empty($lastname) && !empty($email) && !empty($mobilenumber) && !empty($password)){
-       
-            // check if user email already exist
-            if($userExists) {
-                $email_exist = '
-                    <div class="alert alert-danger" role="alert">
-                        User with email already exist!
-                    </div>';
-            } else {
-                // clean the form data before sending to database
-                $_firstname = mysqli_real_escape_string($connection, $firstname);
-                $_lastname = mysqli_real_escape_string($connection, $lastname);
-                $_mobilenumber = mysqli_real_escape_string($connection, $mobilenumber);
-                $_password = mysqli_real_escape_string($connection, $password);
-                $validated = true;
-                if(!preg_match("/^[a-zA-Z ]*$/", $_firstname)) {
-                    $validated = false;
-                    $f_NameErr = '<div class="alert alert-danger">
-                            Only letters and white space allowed.
-                        </div>';
-                }
-                if(!preg_match("/^[a-zA-Z ]*$/", $_lastname)) {
-                    $validated = false;
-                    $l_NameErr = '<div class="alert alert-danger">
-                            Only letters and white space allowed.
-                        </div>';
-                }
-                if(!filter_var($_email, FILTER_VALIDATE_EMAIL)) {
-                    $validated = false;
-                    $_emailErr = '<div class="alert alert-danger">
-                            Email format is invalid.
-                        </div>';
-                }
-                if(!preg_match("/^[0-9]{7,15}+$/", $_mobilenumber)) {
-                    $validated = false;
-                    $_mobileErr = '<div class="alert alert-danger">
-                        Väärän pituinen numero
-                        </div>';
-                }
-                if(!preg_match($passwordRegex, $_password)) {
-                    $validated = false;
-                    $_passwordErr = '<div class="alert alert-danger">
-                        Anna vähintään 16 merkkiä pitkä salasana.
-                        </div>';
-                }
-                
-                if($validated){
-                    // Generate random activation token
-                    $token = md5(rand().time());
-                    $password_hash = password_hash($password, PASSWORD_BCRYPT);
-                    $query = "INSERT INTO users (firstname, lastname, email, mobilenumber, password, token, is_active) VALUES ('$_firstname', '$_lastname', '$_email', '$_mobilenumber', '$password_hash', 
-                        '$token', '0')";
-                    $result = mysqli_query($connection, $query);
-                    if(!$result){
-                        die("MySQL query failed!" . mysqli_error($connection));
-                    } 
-
-                    // Send verification email
-                    if($result) {
-                        $msg = 'Click on the activation link to verify your email. <br><br>
-                          <a href="http://localhost/php-user-authentication/user_verification.php?token='.$token.'"> Click here to verify email</a>
-                        ';
-                        $topic = 'Please Verify Email Address!';
-                        $tulos = posti($email,$msg,$topic);    
-  
-                        if(!$tulos){
-                            $email_verify_err = '<div class="alert alert-danger">
-                                    Verification email coud not be sent!
-                            </div>';
-                        } else {
-                            $email_verify_success = '<div class="alert alert-success">
-                                Verification email has been sent!
-                            </div>';
-                        }
-                    }
+        $emailExists = mysqli_num_rows($result);
+        if (!$mailExists){
+          $token = md5(rand().time());
+          $password_hash = password_hash($password, PASSWORD_BCRYPT);
+          $query = "INSERT INTO users (firstname,lastname,email,mobilenumber,password,token,is_active) 
+            VALUES ('$firstname','$lastname','$email','$mobilenumber','$password_hash','$token',0)";
+          $result = mysqli_query($connection, $query);
+          $id = mysqli_insert_id($connection);  
+          if(!$result) die("Tietojen tallentaminen epäonnistui.".mysqli_error($connection));
+          // Send verification email
+          if($result) {
+            $msg = 'Vahvista sähköpostiosoitteesi seuraavasta linkistä:.<br><br>
+                    <a href="http://localhost/php-user-authentication/user_verification.php?token='.$token.'">Click here to verify email</a>';
+            $topic = 'Vahvista sähköpostiosoite!';
+            debuggeri("email:$email,msg:$msg,topic:$topic");
+            $tulos = posti($email,$msg,$topic);    
+            if(!$tulos){
+                $query = "DELETE FROM users WHERE id = $id";
+                $result = mysqli_query($connection, $query);
+                $email_verify_err = 
+                  '<div class="alert alert-danger">
+                   Verification email coud not be sent!
+                   </div>';
+                } 
+            else {
+                $email_verify_success = 
+                  '<div class="alert alert-success">
+                   Verification email has been sent!
+                   </div>';
+                   }
                 }
             }
-        } else {
-            if(empty($firstname)){
-                $fNameEmptyErr = '<div class="alert alert-danger">
-                    First name can not be blank.
+          else {
+            /* Sähköpostiosoite on varattu */
+            $errors['emailExists'] = 
+            '<div class="alert alert-danger" role="alert">
+            User with email already exist!
+            </div>';
+            }  
+          }
+        else {
+          //Lomakekenttien validointi epäonnistui    
+          if (!isset($arvot['firstname'])){
+            $errors['firstname'] = 
+              '<div class="alert alert-danger">
+               Anna etunimi.
+               </div>';
+            }
+          if (!isset($arvot['lastname'])){
+            $errors['lastname'] = 
+              '<div class="alert alert-danger">
+              Anna sukunimi.
+              </div>';
+            }
+          if (!isset($arvot['email'])){
+            $errors['email'] = 
+                '<div class="alert alert-danger">
+                Anna sähköpostiosoite oikeassa muodossa.
                 </div>';
             }
-            if(empty($lastname)){
-                $lNameEmptyErr = '<div class="alert alert-danger">
-                    Last name can not be blank.
-                </div>';
+          if (!isset($arvot['mobilenumber'])){
+            $errors['mobilenumber'] = 
+              '<div class="alert alert-danger">
+               Anna puhelinnumero muodossa 358501234567.
+               </div>';
             }
-            if(empty($email)){
-                $emailEmptyErr = '<div class="alert alert-danger">
-                    Email can not be blank.
-                </div>';
-            }
-            if(empty($mobilenumber)){
-                $mobileEmptyErr = '<div class="alert alert-danger">
-                    Mobile number can not be blank.
-                </div>';
-            }
-            if(empty($password)){
-                $passwordEmptyErr = '<div class="alert alert-danger">
-                    Password can not be blank.
+          if (!isset($arvot['password'])){
+            $errors['password'] = 
+                '<div class="alert alert-danger">
+                Anna vähintään 16 merkkiä pitkä salasana.
                 </div>';
             }            
         }
+    debuggeri($errors); 
+    debuggeri($arvot); 
+    //debuggeri("firstname:$firstname");  
     }
 ?>

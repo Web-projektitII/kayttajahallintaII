@@ -24,50 +24,44 @@
                 <form action="" method="post">
                     <h3>Register</h3>
 
-                    <?php echo $success_msg; ?>
-                    <?php echo $email_exist; ?>
-
-                    <?php echo $email_verify_err; ?>
-                    <?php echo $email_verify_success; ?>
+                    <?php echo $email_verify_success ?>
+                    <?php echo $errors['emailExists'] ?? "" ?>
 
                     <div class="form-group">
                         <label>First name</label>
-                        <input type="text" class="form-control" name="firstname" id="firstName" />
-
-                        <?php echo $fNameEmptyErr; ?>
-                        <?php echo $f_NameErr; ?>
+                        <input type="text" class="form-control" name="firstname" id="firstName" 
+                        value="<?php echo (!empty($errors) && !isset($errors['firstname'])) ? htmlentities($_POST['firstname']) : "";?>"
+                        pattern="<?php echo trim($patterns['firstname'],"/");?>"/>
+                        <?php echo $errors['firstname'] ?? "" ?>
                     </div>
 
                     <div class="form-group">
                         <label>Last name</label>
-                        <input type="text" class="form-control" name="lastname" id="lastName" />
-
-                        <?php echo $l_NameErr; ?>
-                        <?php echo $lNameEmptyErr; ?>
+                        <input type="text" class="form-control" name="lastname" id="lastName" 
+                        value="<?php echo (!empty($errors) && !isset($errors['lastname'])) ? htmlentities($_POST['lastname']) : "";?>"
+                        pattern="<?php echo trim($patterns['lastname'],"/");?>"/>
+                        <?php echo $errors['lastname'] ?? "" ?>
                     </div>
 
                     <div class="form-group">
                         <label>Email</label>
-                        <input type="email" class="form-control" name="email" id="email" />
-
-                        <?php echo $_emailErr; ?>
-                        <?php echo $emailEmptyErr; ?>
+                        <input type="email" class="form-control" name="email" id="email" 
+                        value = "<?php echo (!empty($errors) && !isset($errors['email'])) ? htmlentities($_POST['email']) : "";?>"/>
+                        <?php echo $errors['email'] ?? "" ?>
                     </div>
 
                     <div class="form-group">
                         <label>Mobile</label>
-                        <input type="text" placeholder="358501234567" class="form-control" name="mobilenumber" id="mobilenumber" />
-
-                        <?php echo $_mobileErr; ?>
-                        <?php echo $mobileEmptyErr; ?>
+                        <input type="text" placeholder="358501234567" class="form-control" name="mobilenumber" id="mobilenumber" 
+                        value = "<?php echo (!empty($errors) && !isset($errors['mobilenumber'])) ? htmlentities($_POST['mobilenumber']) : "";?>"/>
+                        <?php echo $errors['mobilenumber'] ?? "" ?>
                     </div>
 
                     <div class="form-group">
                         <label>Password</label>
-                        <input type="password" class="form-control" name="password" id="password" />
-
-                        <?php echo $_passwordErr; ?>
-                        <?php echo $passwordEmptyErr; ?>
+                        <input type="password" class="form-control" name="password" id="password" 
+                        value = "<?php echo (!empty($errors) && !isset($errors['password'])) ? htmlentities($_POST['password']) : "";?>"/>
+                        <?php echo $errors['password'] ?? "" ?>
                     </div>
 
                     <button type="submit" name="submit" id="submit" class="btn btn-outline-primary btn-lg btn-block">Sign up
