@@ -1,4 +1,4 @@
-<?php include('./controllers/register.php'); ?>
+<?php include('./controllers/register.php');?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -40,7 +40,7 @@ removeServerError = e => {
     <input type="text" required class="form-control<?php if(isset($errors['firstname'])) echo " is-invalid";?>" 
         name="firstname" id="firstname" 
         pattern="<?php echo trim($patterns['firstname'],"/");?>"
-        oninput="removeServerError(this);"
+        <?php if(isset($errors['firstname'])) echo "oninput=\"removeServerError(this)\"";?>
         value="<?php echo (!empty($errors) && !isset($errors['firstname'])) ? htmlentities($_POST['firstname']) : "";?>"
         />
     <div class="invalid-feedback">
@@ -52,8 +52,8 @@ removeServerError = e => {
     <input type="text" required class="form-control<?php if(isset($errors['lastname'])) echo " is-invalid";?>" 
         name="lastname" id="lastname" 
         pattern="<?php echo trim($patterns['lastname'],"/");?>"
-        oninput="removeServerError(this);"
-        value="<?php echo (!empty($errors) && !isset($errors['firstname'])) ? htmlentities($_POST['lastname']) : "";?>"
+        <?php if(isset($errors['lastname'])) echo "oninput=\"removeServerError(this)\"";?>
+        value="<?php echo (!empty($errors) && !isset($errors['lastname'])) ? htmlentities($_POST['lastname']) : "";?>"
         />
     <div class="invalid-feedback">
     <?php echo $virheilmoitus['lastname'];?>
@@ -64,7 +64,7 @@ removeServerError = e => {
     <input type="email" required class="form-control<?php if(isset($errors['email'])) echo " is-invalid";?>" 
         name="email" id="email" 
         pattern="<?php echo trim($patterns['email'],"/");?>"
-        oninput="removeServerError(this);"
+        <?php if(isset($errors['email'])) echo "oninput=\"removeServerError(this)\"";?>
         value="<?php echo (!empty($errors) && !isset($errors['email'])) ? htmlentities($_POST['email']) : "";?>"
         />
     <div class="invalid-feedback">
@@ -76,7 +76,7 @@ removeServerError = e => {
     <input type="tel" required class="form-control<?php if(isset($errors['mobilenumber'])) echo " is-invalid";?>" 
         name="mobilenumber" id="mobilenumber" 
         pattern="<?php echo trim($patterns['mobilenumber'],"/");?>"
-        oninput="removeServerError(this);"
+        <?php if(isset($errors['mobilenumber'])) echo "oninput=\"removeServerError(this)\"";?>
         value="<?php echo (!empty($errors) && !isset($errors['mobilenumber'])) ? htmlentities($_POST['mobilenumber']) : "";?>"
         />
     <div class="invalid-feedback">
@@ -88,7 +88,7 @@ removeServerError = e => {
     <input type="password" required class="form-control<?php if(isset($errors['password'])) echo " is-invalid";?>" 
         name="password" id="password" 
         pattern="<?php echo trim($patterns['password'],"/");?>"
-        oninput="removeServerError(this);"
+        <?php if(isset($errors['password'])) echo "oninput=\"removeServerError(this)\"";?>
         value="<?php echo (!empty($errors) && !isset($errors['password'])) ? htmlentities($_POST['password']) : "";?>"
         />
     <div class="invalid-feedback">
