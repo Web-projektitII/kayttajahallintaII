@@ -1,30 +1,37 @@
 <?php
-    //echo $_SERVER['SCRIPT_NAME']."<br>";
-    include('debuggeri.php');
-    $patternPath = "/(\/[^\/]*)/";
-    $patterns['password'] = "/^.{16,}$/";
-    $patterns['firstname'] = "/^[\p{Latin}'-]*$/";
-    $patterns['lastname'] = $patterns['firstname']; 
-    $patterns['mobilenumber'] = "/^[0-9]{7,15}+$/";
+//echo $_SERVER['SCRIPT_NAME']."<br>";
+include('debuggeri.php');
+$patternPath = "/(\/[^\/]*)/";
+$patterns['password'] = "/^.{16,}$/";
+$patterns['firstname'] = "/^[a-zåäöA-ZÅÄÖ'-]*$/";
+$patterns['lastname'] = $patterns['firstname']; 
+$patterns['mobilenumber'] = "/^[0-9]{7,15}$/";
+$patterns['email'] = "/^[\w]+[\w.+-]*@[\w-]+(\.[\w-]{2,})?\.[a-zA-Z]{2,}$/";
 
-    $path = preg_replace($patternPath,"../",$_SERVER['SCRIPT_NAME']);
-    //foreach ($_SERVER AS $k => $v) echo "$k:$v<br>";
-    //echo "http://".$_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'];
+$virheilmoitus['firstname'] = "Anna etunimi";
+$virheilmoitus['lastname'] = "Anna sukunimi";
+$virheilmoitus['mobilenumber'] = "Anna puhelinnumero muodossa 358501234567";
+$virheilmoitus['password'] = "Anna vähintään 16 merkkiä pitkä salasana.";
+$virheilmoitus['email'] = "Anna sähköpostiosoite oikeassa muodossa.";
+$path = preg_replace($patternPath,"../",$_SERVER['SCRIPT_NAME']);
+//foreach ($_SERVER AS $k => $v) echo "$k:$v<br>";
+//echo "http://".$_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'];
     
-    if (!file_exists($path.'tunnukset.php')) {
-        debuggeri(basename(__FILE__).",tunnuksia ei löydy, polku:$path");
-        exit;
-        }
-    else require($path.'tunnukset.php');
-    include('config/db.php');
-    include('posti.php');  
-    global $success_msg, $email_exist, $f_NameErr, $l_NameErr, $_emailErr, $_mobileErr, $_passwordErr;
-    global $fNameEmptyErr, $lNameEmptyErr, $emailEmptyErr, $mobileEmptyErr, $passwordEmptyErr, $email_verify_err, $email_verify_success;
-    $kentat = array('firstname','lastname','email','mobilenumber','password');
-    $errors = [];
-    $emailExists = false;
+if (!file_exists($path.'tunnukset.php')) {
+    debuggeri(basename(__FILE__).",tunnuksia ei löydy, polku:$path");
+    exit;
+    }
+else require($path.'tunnukset.php');
+include('config/db.php');
+include('posti.php');  
+global $success_msg;
+global $email_verify_success,$email_verify_err;
+$kentat = array('firstname','lastname','email','mobilenumber','password');
+$kentat = array_intersect(array_keys($_POST),$kentat);
+$errors = [];
+$emailExists = false;
 
-    function validate($patterns,$kentat){
+function validate($patterns,$kentat){
     /* Lisätään arvoihin validoidut kentat */    
     $validated = true;    
     $arvot = [];
@@ -46,9 +53,9 @@
     return array($validated,$arvot);
     }
 
-    if (isset($_POST["submit"])) {
-      list($validated,$arvot) = validate($patterns,$kentat);
-      if ($validated){
+if (isset($_POST["submit"])) {
+    list($validated,$arvot) = validate($patterns,$kentat);
+    if ($validated){
         foreach ($arvot AS $kentta => $arvo) {
           $$kentta = mysqli_real_escape_string($connection,$arvo);
           }  
@@ -56,17 +63,17 @@
         debuggeri("query:$query");
         $result = mysqli_query($connection, $query);
         $emailExists = mysqli_num_rows($result);
-        if (!$mailExists){
+        if (!$emailExists){
           $token = md5(rand().time());
           $password_hash = password_hash($password, PASSWORD_BCRYPT);
-          $query = "INSERT INTO users (firstname,lastname,email,mobilenumber,password,token,is_active) 
-            VALUES ('$firstname','$lastname','$email','$mobilenumber','$password_hash','$token',0)";
+          $query = "INSERT INTO users (firstname,lastname,email,mobilenumber,password,token) 
+            VALUES ('$firstname','$lastname','$email','$mobilenumber','$password_hash','$token')";
           $result = mysqli_query($connection, $query);
           $id = mysqli_insert_id($connection);  
           if(!$result) die("Tietojen tallentaminen epäonnistui.".mysqli_error($connection));
           // Send verification email
           if($result) {
-            $msg = 'Vahvista sähköpostiosoitteesi seuraavasta linkistä:.<br><br>
+            $msg = 'Vahvista sähköpostiosoitteesi seuraavasta linkistä:<br><br>
                     <a href="http://localhost/php-user-authentication/user_verification.php?token='.$token.'">Click here to verify email</a>';
             $topic = 'Vahvista sähköpostiosoite!';
             debuggeri("email:$email,msg:$msg,topic:$topic");
@@ -74,6 +81,7 @@
             if(!$tulos){
                 $query = "DELETE FROM users WHERE id = $id";
                 $result = mysqli_query($connection, $query);
+                debuggeri($query);
                 $email_verify_err = 
                   '<div class="alert alert-danger">
                    Verification email coud not be sent!
@@ -97,36 +105,24 @@
           }
         else {
           //Lomakekenttien validointi epäonnistui    
+          $kentat_i = array_flip($kentat);
+          $errors = array_diff_key($kentat_i,$arvot);
+          /*
           if (!isset($arvot['firstname'])){
-            $errors['firstname'] = 
-              '<div class="alert alert-danger">
-               Anna etunimi.
-               </div>';
+            $errors['firstname'] = true;
             }
           if (!isset($arvot['lastname'])){
-            $errors['lastname'] = 
-              '<div class="alert alert-danger">
-              Anna sukunimi.
-              </div>';
+            $errors['lastname'] = true;
             }
           if (!isset($arvot['email'])){
-            $errors['email'] = 
-                '<div class="alert alert-danger">
-                Anna sähköpostiosoite oikeassa muodossa.
-                </div>';
+            $errors['email'] = true;
             }
           if (!isset($arvot['mobilenumber'])){
-            $errors['mobilenumber'] = 
-              '<div class="alert alert-danger">
-               Anna puhelinnumero muodossa 358501234567.
-               </div>';
+            $errors['mobilenumber'] = true;
             }
           if (!isset($arvot['password'])){
-            $errors['password'] = 
-                '<div class="alert alert-danger">
-                Anna vähintään 16 merkkiä pitkä salasana.
-                </div>';
-            }            
+            $errors['password'] = true;
+            }*/            
         }
     debuggeri($errors); 
     debuggeri($arvot); 

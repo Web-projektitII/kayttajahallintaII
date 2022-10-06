@@ -1,0 +1,14 @@
+/* xxx-xx-xxxxx-xx-x */
+/* 978 tai 979,
+   0 tai 1 erotinta,
+   1-5 numeroa,
+   0 tai 1 erotinta,
+   maks. 7 numeroa, 
+   0 tai 1 erotinta,
+   maks. 6 numeroa, 
+   0 tai 1 erotinta,
+   1 tarkistusnumero 
+   (yht. 13)
+$str_replace(array('-',' '),'',$str);
+$pattern = "/^[\d]{10}|[\d]{13}$/";
+$ok = preg_match($pattern,$str);

@@ -65,3 +65,7 @@ html
 label {
   font-weight: 500;
 }
+
+/*input:invalid {
+ color:red;
+ }*/
