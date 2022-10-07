@@ -1,5 +1,38 @@
 <?php 
 include('./controllers/register.php');
+/* 
+LOMAKKEEN SELITYKSET 
+Muotoilu, selaimen validointi, palvelimen validointi,
+yhtenäiset virheilmoitukset
+
+Tässä on Bootstrap 4 lomakkeen muotoiluun.
+Bootstrap edellyttää novalidate -määritystä, se
+estää HTML5-virheilmoitusten näyttämisen. 
+class needs-validation osoittaa ne lomakkeet,
+joille javascriptilla lisätään class was-validated. Sitä
+edellyttää ja se käynnistää HTML5-validoinnin.
+
+LOMAKKEEN MÄÄRITYS
+<form novalidate class="needs-validation" action="" method="post">
+
+KENTÄN MÄÄRITYS
+<div class="form-group">
+    <label>First name</label>
+    // class is-invalid
+    <input type="text" required class="form-control<?php if(isset($errors['firstname'])) echo " is-invalid";?>" 
+        name="firstname" id="firstname" 
+    // pattern on sama kuin palvelimella    
+        pattern="<?php echo trim($patterns['firstname'],"/");?>"
+    // oninput poistaa is-invalid -classin ja oninput-attribuutin
+        <?php if(isset($errors['firstname'])) echo "oninput=\"removeServerError(this)\"";?>
+    // oikein annettu arvo säilytetään
+        value="<?php echo (!empty($errors) && !isset($errors['firstname'])) ? htmlentities($_POST['firstname']) : "";?>"
+        />
+    // sama virheilmoitus selaimelta ja palvelimelta invalid-feedback -div-elementtiin    
+    <div class="invalid-feedback">
+    <?php echo $virheilmoitus['firstname'];?>
+    </div>
+*/    
 ?>
 <!doctype html>
 <html lang="en">
