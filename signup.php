@@ -1,4 +1,6 @@
-<?php include('./controllers/register.php');?>
+<?php 
+include('./controllers/register.php');
+?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -18,9 +20,11 @@
 <link rel="stylesheet" href="./css/style.css">
 <script>
 removeServerError = e => { 
-    if (e.classList.contains('is-invalid')) 
-        e.classList.remove('is-invalid')
-        }
+    /*if (e.classList.contains('is-invalid')) 
+        e.classList.remove('is-invalid');*/
+    e.classList.remove('is-invalid');    
+    e.removeAttribute('oninput');
+    }    
 </script>    
 </head>
 
