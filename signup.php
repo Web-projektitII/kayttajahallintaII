@@ -2,8 +2,8 @@
 include('./controllers/register.php');
 /* 
 LOMAKKEEN SELITYKSET 
-Muotoilu, selaimen validointi, palvelimen validointi,
-yhtenäiset virheilmoitukset
+1 Muotoilu, 2 selaimen validointi, 3 palvelimen validointi,
+4 yhtenäiset virheilmoitukset, 5 kenttien arvon muistaminen
 
 Tässä on Bootstrap 4 lomakkeen muotoiluun.
 Bootstrap edellyttää novalidate -määritystä, se
