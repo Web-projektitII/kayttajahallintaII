@@ -58,6 +58,13 @@ removeServerError = e => {
     e.classList.remove('is-invalid');    
     e.removeAttribute('oninput');
     }    
+
+salli = () => document.querySelectorAll('.form-control')
+  .forEach(item => item.removeAttribute('required'));    
+    
+tyhjenna = () => document.querySelectorAll('.form-control')
+  .forEach(item => item.defaultValue = "");    
+
 </script>    
 </head>
 
@@ -132,8 +139,9 @@ removeServerError = e => {
     <?php echo $virheilmoitus['password'];?>
     </div>
 </div>
-<button type="submit" name="submit" id="submit" class="btn btn-outline-primary btn-lg btn-block">Sign up
-</button>
+<button type="submit" name="submit" id="submit" class="btn btn-outline-primary btn-lg btn-block">Rekisteröidy</button>
+<button type="submit" onclick="salli()" formnovalidate name="button" id="button" class="btn btn-outline-secondary btn-lg btn-block">Validointi vain palvelimella</button>
+<input type="reset" onclick="tyhjenna()" class="btn btn-outline-secondary btn-lg btn-block" value="Tyhjennä">
 </form>
 </div>
 </div>

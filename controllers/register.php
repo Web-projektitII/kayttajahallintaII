@@ -16,7 +16,8 @@ $virheilmoitus['email'] = "Anna sähköpostiosoite oikeassa muodossa.";
 $path = preg_replace($patternPath,"../",$_SERVER['SCRIPT_NAME']);
 //foreach ($_SERVER AS $k => $v) echo "$k:$v<br>";
 //echo "http://".$_SERVER['HTTP_HOST'].$_SERVER['SCRIPT_NAME'];
-    
+debuggeri("POST:");
+debuggeri($_POST);    
 if (!file_exists($path.'tunnukset.php')) {
     debuggeri(basename(__FILE__).",tunnuksia ei löydy, polku:$path");
     exit;
@@ -53,7 +54,7 @@ function validate($patterns,$kentat){
     return array($validated,$arvot);
     }
 
-if (isset($_POST["submit"])) {
+if (isset($_POST["submit"]) || isset($_POST["button"])) {
     list($validated,$arvot) = validate($patterns,$kentat);
     if ($validated){
         foreach ($arvot AS $kentta => $arvo) {
