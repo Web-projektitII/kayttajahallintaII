@@ -33,6 +33,7 @@ KENTÄN MÄÄRITYS
     <?php echo $virheilmoitus['firstname'];?>
     </div>
 */    
+$x = "Testiä";
 ?>
 <!doctype html>
 <html lang="en">
@@ -51,7 +52,7 @@ KENTÄN MÄÄRITYS
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
 -->
 <link rel="stylesheet" href="./css/style.css">
-<script>
+<script>  
 removeServerError = e => { 
     /*if (e.classList.contains('is-invalid')) 
         e.classList.remove('is-invalid');*/
@@ -59,8 +60,9 @@ removeServerError = e => {
     e.removeAttribute('oninput');
     }    
 
-salli = () => document.querySelectorAll('.form-control')
-  .forEach(item => item.removeAttribute('required'));    
+salli = () => 
+    document.querySelectorAll('.form-control')
+    .forEach(item => item.removeAttribute('required'));   
     
 tyhjenna = () => document.querySelectorAll('.form-control')
   .forEach(item => item.defaultValue = "");    

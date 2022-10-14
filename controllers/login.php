@@ -39,6 +39,7 @@
 
             else {
                 if ($is_active == '1') {
+                        session_start();
                         $_SESSION['loggedin'] = true;
                         if (isset($_SESSION['next_page'])){
                             $next_page = $_SESSION['next_page'];
